@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 const Stack = createNativeStackNavigator();
 
 const RootStack = () => {
-    // const { user } = useAuth();
+    const { user } = useAuth();
     return (
         <NavigationContainer>
             <Stack.Navigator
@@ -20,7 +20,7 @@ const RootStack = () => {
                     animationTypeForReplace: 'push',
                 }}
             >
-                {/* {user ? (
+                {user ? (
                     <Stack.Screen
                         name={'AppStack'}
                         component={AppStack}
@@ -32,12 +32,7 @@ const RootStack = () => {
                         component={AuthStack}
                         options={{ headerShown: false }}
                     />
-                )} */}
-                <Stack.Screen
-                    name={'AuthStack'}
-                    component={AuthStack}
-                    options={{ headerShown: false }}
-                />
+                )}
             </Stack.Navigator>
         </NavigationContainer>
     )
