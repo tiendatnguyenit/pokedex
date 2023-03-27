@@ -1,11 +1,12 @@
 import { Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../routes/routeParams';
 import Images from '../../assets/images';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import auth from '@react-native-firebase/auth';
+import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 
 
 interface IProps {
@@ -13,12 +14,12 @@ interface IProps {
 }
 const Login = (props: IProps) => {
     const { navigation } = props;
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
     const handleLogin = () => {
         console.log('login');
-        if (email.trim()!= '' && password.trim()!= '') {
+        if (email.trim() != '' && password.trim() != '') {
             auth()
                 .signInWithEmailAndPassword(email.trim(), password.trim())
                 .then(() => {
@@ -36,7 +37,40 @@ const Login = (props: IProps) => {
                     console.error(error);
                 });
         }
+    };
+    const facebookLogin = async () => {
+        // Attempt login with permissions
+        const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
+
+        if (result.isCancelled) {
+            throw 'User cancelled the login process';
+        }
+
+        // Once signed in, get the users AccesToken
+        const data = await AccessToken.getCurrentAccessToken();
+
+        if (!data) {
+            throw 'Something went wrong obtaining access token';
+        }
+
+        // Create a Firebase credential with the AccessToken
+        const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
+
+        // Sign-in the user with the credential
+        return auth().signInWithCredential(facebookCredential);
     }
+
+    const handleLoginFb = () => {
+        console.log('login fb');
+        facebookLogin()
+            .then((res) => {
+                console.log('res login fb', res);
+                // setUserData(res?.data || null);
+            })
+            .catch((err) => {
+                console.log('err', err);
+            });
+    };
 
     return (
         <KeyboardAwareScrollView
@@ -89,7 +123,7 @@ const Login = (props: IProps) => {
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={{ flex: 1, padding: 10, borderRadius: 10, backgroundColor: '#4267B2', marginBottom: 16 }}
-                            onPress={() => { navigation.navigate('Login') }}
+                            onPress={handleLoginFb}
                         >
                             <Text style={{ textAlign: 'center' }}>
                                 Facebook SignIn
